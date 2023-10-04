@@ -12,7 +12,7 @@ swahili_file_path = '/content/drive/MyDrive/path_to_swahili-train.jsonl'
 german_file_path = '/content/drive/MyDrive/path_to_german-train.jsonl'
 output_file_path = '/content/drive/MyDrive/path_to_combined_translations.json'
 
-# Initialize a dictionary to store translation
+# Initialize a dictionary to store translations
 translations = {}
 
 # Process English data
