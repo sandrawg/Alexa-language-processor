@@ -44,7 +44,7 @@ for entry in german_data:
     if id in translations:
         translations[id]['translations']['ge'] = utt
 
-# Save the combined translations to a single JSON file on Google Drive
+# Save the combined translations to a single JSON file on Google  Drive
 with open(output_file_path, 'w', encoding='utf-8') as json_file:
     json.dump(translations, json_file, ensure_ascii=False, indent=4)
 
