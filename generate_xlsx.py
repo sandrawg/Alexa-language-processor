@@ -1,62 +1,77 @@
 import json
 import os
 import pandas as pd
+from absl import flags
 
-# Define the input and output folder paths
-input_folder = "data"  # Replace with the path to your JSONL files folder
-output_folder = "output"
-original_file_path = os.path.join(input_folder, "en-US.jsonl")  # Path to the original en-US JSONL file
+# Define flags
+FLAGS = flags.FLAGS
 
-# Ensure the output folder exists
-os.makedirs(output_folder, exist_ok=True)
+flags.DEFINE_string('input_folder', 'data', 'Path to the JSONL files folder')
+flags.DEFINE_string('output_folder', 'output', 'Path to the output folder')
+flags.DEFINE_string('original_file_path', 'data/en-US.jsonl', 'Path to the original en-US JSONL file')
 
-# # Remove existing XLSX files in the 'output' folder
-for filename in os.listdir(output_folder):
-    if filename.endswith(".xlsx"):
-        os.remove(os.path.join(output_folder, filename))
+def main(argv):
+    FLAGS(argv)  # Parse flags
 
-# Initialize a dictionary to store data for each language
-data_by_language = {}
+    # Use flag values for input_folder, output_folder, and original_file_path
+    input_folder = FLAGS.input_folder
+    output_folder = FLAGS.output_folder
+    original_file_path = FLAGS.original_file_path
 
-# Initialize a list to store the data from the original en-US file
-original_data = []
+    # Ensure the output folder exists
+    os.makedirs(output_folder, exist_ok=True)
 
-# Read the original en-US JSONL file
-with open(original_file_path, "r", encoding="utf-8") as original_file:
-    for line in original_file:
-        original_data.append(json.loads(line))
+    # Remove existing XLSX files in the 'output' folder
+    for filename in os.listdir(output_folder):
+        if filename.endswith(".xlsx"):
+            os.remove(os.path.join(output_folder, filename))
 
-# Iterate through JSONL files in the input folder
-for filename in os.listdir(input_folder):
-    if filename.endswith(".jsonl"):
-        # Extract the language code (e.g., "am" from "am-ET.jsonl")
-        language_code = filename.split("-")[0]
+    # Initialize a dictionary to store data for each language
+    data_by_language = {}
 
-        # Initialize an empty list to store data for this language
-        data_by_language[language_code] = []
+    # Initialize a list to store the data from the original en-US file
+    original_data = []
 
-        # Open the JSONL file and append its contents to the list
-        with open(os.path.join(input_folder, filename), "r", encoding="utf-8") as file:
-            for line in file:
-                data = json.loads(line)
-                data_by_language[language_code].append(data)
+    # Read the original en-US JSONL file
+    with open(original_file_path, "r", encoding="utf-8") as original_file:
+        for line in original_file:
+            original_data.append(json.loads(line))
 
-# Iterate through the data and create XLSX files for each language
-for language_code, data in data_by_language.items():
-    # Create a Pandas DataFrame from the JSON data
-    df = pd.DataFrame(data, columns=['id', 'utt', 'annot_utt'])
+    # Iterate through JSONL files in the input folder
+    for filename in os.listdir(input_folder):
+        if filename.endswith(".jsonl"):
+            # Extract the language code (e.g., "am" from "am-ET.jsonl")
+            language_code = filename.split("-")[0]
 
-    # Merge data from the original en-US file based on the 'id' column
-    en_us_data = pd.DataFrame(original_data, columns=['id', 'utt', 'annot_utt'])
-    df = pd.merge(df, en_us_data, on='id', how='left')
+            # Initialize an empty list to store data for this language
+            data_by_language[language_code] = []
 
-    # Construct the output XLSX file name (e.g., "en-am.xlsx")
-    output_filename = f"en-{language_code}.xlsx"
+            # Open the JSONL file and append its contents to the list
+            with open(os.path.join(input_folder, filename), "r", encoding="utf-8") as file:
+                for line in file:
+                    data = json.loads(line)
+                    data_by_language[language_code].append(data)
 
-    # Define the full output file path
-    output_file_path = os.path.join(output_folder, output_filename)
+    # Iterate through the data and create XLSX files for each language
+    for language_code, data in data_by_language.items():
+        # Create a Pandas DataFrame from the JSON data
+        df = pd.DataFrame(data, columns=['id', 'utt', 'annot_utt'])
 
-    # Save the DataFrame to an XLSX file
-    df.to_excel(output_file_path, index=False)
+        # Merge data from the original en-US file based on the 'id' column
+        en_us_data = pd.DataFrame(original_data, columns=['id', 'utt', 'annot_utt'])
+        df = pd.merge(df, en_us_data, on='id', how='left')
 
-print("XLSX files with data have been updated in the 'output' folder.")
+        # Construct the output XLSX file name (e.g., "en-am.xlsx")
+        output_filename = f"en-{language_code}.xlsx"
+
+        # Define the full output file path
+        output_file_path = os.path.join(output_folder, output_filename)
+
+        # Save the DataFrame to an XLSX file
+        df.to_excel(output_file_path, index=False)
+
+    print("XLSX files with data have been updated in the 'output' folder.")
+
+if _name_ == '_main_':
+    import sys
+    main(sys.argv)
